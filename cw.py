@@ -17,6 +17,10 @@ dic_register = dict.fromkeys(list(range(32)),0)
 labels = {}     #the labels
 
 
+#to get the 16 bit of a decimal
+def decToBin(i):
+    return (bin(((1 << 16) - 1) & i)[2:]).zfill(16)
+
 #get the content of the txt file
 def get_content():
     global pc
@@ -30,12 +34,13 @@ def get_content():
 #translate the Mips instruction to the bytecode
 def bytecode():
     global pc
+    offset = 0      #the offset about the jump instruction
     for i in range(len(content)):
-        temp = content[i].split(' ')
+        temp = content[i].split(' ')                                #separate the operator and the registers
         if len(temp) == 1:
-            labels[temp[0][0:-1]] = i
+            labels[temp[0][0:-1]] = i                               #record the label without the symbol ':'
 
-        for j in range(temp.count('')):
+        for j in range(temp.count('')):                             #delete unecessary spaces
             temp.remove('')
 
         operator.append(temp[0].lower())
@@ -69,7 +74,8 @@ def bytecode():
             function = '000010'
             b_c.append(op+rs+rt+rd+shamt+function)
 
-        elif operator[i] == 'bne':                              #divide to two parts, first step is addi, second step is bne
+        elif operator[i] == 'bne':                              #divide to two steps, first step is addi, second step is bne
+            offset += 1
             #addi part
             op = '001000'
             rd = register('$zero')
@@ -83,7 +89,7 @@ def bytecode():
             op = '000101'
             rs = register((temp[1].lower().split(','))[0])
             rt = register('$at')
-            address_offset = bin(0xfffc)[2:]                    #get the address_offset of the label
+            address_offset = decToBin(labels[(temp[1].lower().split(','))[2]]-len(b_c)-offset)                #get the address_offset of the label
             b_c.append(op+rt+rs+address_offset)
 
         #extra part
@@ -273,7 +279,7 @@ def bytecode():
             rs = register((temp[1].lower().split(','))[0])
             rt = register('$at')
             #calc the value of registers
-            if dic_register[int(rs,2)] != dic_register[int(rt,2)]:
+            if dic_register[int(rs,2)] != dic_register[int(rt,2)]:  #go to the specail label
                 count = labels[temp[1].split(',')[2].lower()]
 
         #extra part
