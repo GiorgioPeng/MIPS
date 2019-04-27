@@ -1,5 +1,9 @@
+#未解决的问题:多重标签时的跳转问题,
+#大致思路:没有嵌套的标签可以直接用当前位置减掉b_c长度再减一(从0 开始),
+#           如果有嵌套,那么需要在减掉嵌套层数减一
 import os
 global pc
+filename = ''
 pc = 0x00400000 #the address
 address = []    #store address of each instruction
 content = []    #store the content of each instruction
@@ -25,7 +29,7 @@ def decToBin(i):
 #get the content of the txt file
 def get_content():
     global pc
-    f = open('data.txt','r')
+    f = open(filename,'r')
     for i in f.readlines():
         i = i.strip()
         content.append(i)
@@ -234,9 +238,28 @@ def bytecode():
             for i in range(16-len(const)):
                 const = '0'+const
             b_c.append(op+rd+rs+const)
+
+        elif operator[i] == 'beq':
+            #addi part
+            op = '001000'
+            rd = register('$zero')
+            rs = register('$at')
+            const = bin(int((temp[1].lower().split(','))[1]))[2:]
+            for i in range(16-len(const)):
+                const = '0'+const
+            b_c.append(op+rd+rs+const)
+
+            #beq part
+            op = '000100'
+            rs = register((temp[1].lower().split(','))[0])
+            rt = register('$at')
+            labels[temp[1].lower().split(',')[2]] = bc_labels[(temp[1].lower().split(','))[2]]-len(b_c)
+            address_offset = decToBin(bc_labels[(temp[1].lower().split(','))[2]]-len(b_c))                #get the address_offset of the label
+            b_c.append(op+rt+rs+address_offset)
         else:
             pass
 
+    # print(labels)
     print('The bytecode of the program is:')
     for i in range(len(b_c)):
         print(hex(address[i]),hex(int(b_c[i],2)))
@@ -287,10 +310,28 @@ def bytecode():
             #calc the value of registers
             # print(dic_register[int(rs,2)],dic_register[int(rt,2)])
             if dic_register[int(rs,2)] != dic_register[int(rt,2)]:  #go to the specail label
-                count = address.index(address[len(address)-1]+4+4*labels[temp[1].lower().split(',')[2]])-len(labels)
+                count = address.index(address[len(address)-1]+4+4*labels[temp[1].lower().split(',')[2]])-1
+                # count = address.index(address[len(address)-1]+4+4*labels[temp[1].lower().split(',')[2]])-len(labels)
                 # print(len(labels))
 
         #extra part
+        elif operator[count] == 'beq':
+            rd = register('$zero')
+            rs = register('$at')
+            const = bin(int((temp[1].lower().split(','))[1]))[2:]
+            for i in range(16-len(const)):
+                const = '0'+const
+            #calc the value of registers
+            dic_register[int(rs,2)] = dic_register[int(rd,2)] + int(const,2)
+
+            rs = register((temp[1].lower().split(','))[0])
+            rt = register('$at')
+            #calc the value of registers
+            # print(dic_register[int(rs,2)],dic_register[int(rt,2)])
+            if dic_register[int(rs,2)] == dic_register[int(rt,2)]:  #go to the specail label
+                count = address.index(address[len(address)-1]+4+4*labels[temp[1].lower().split(',')[2]])-len(labels)
+                # print(len(labels))
+
         elif operator[count] == 'and':
             rd = register((temp[1].lower().split(','))[0])          #get the destination register
             rs = register((temp[1].lower().split(','))[1])          #get the operator number 1 register
@@ -471,6 +512,25 @@ def register(rg):       #get the machine value of each register
     return result
 
 if __name__ == '__main__':
+    logo = '''
+    ______________________________________________________________________________________
+    ╭╭╮╮╭──╮╭──╮╭──╮    ╭──╮╭╮╭╮╭──╮╭╮╭╮╭──╮╭╮╭╮
+    │　│╰╮╭╯│╭╮││╭─╯　  │╭╮││╰╯│╰╮╭╯│││││╭╮││╰╮│
+    ││││ ││ │╰╯││╰─╮　  │╰╯│╰╮╭╯ ││ │╰╯││││││　│
+    │╭╮│ ││ │╭─╯╰─╮│　  │╭─╯ ││　││ │╭╮││││││　│
+    ││││╭╯╰╮││　╭─╯│    ││　 ││　││ │││││╰╯││╰╮│
+    ╰╯╰╯╰──╯╰╯　╰──╯    ╰╯　 ╰╯　╰╯ ╰╯╰╯╰──╯╰╯╰╯　
+
+    ╭──╮╭╮╭╮　╭──╮╭──╮╭──╮
+    │╭╮││╰╯│　│╭╮│╰─╮│╰─╮│
+    │╰╯╯╰╮╭╯　│╰╯│ ╭╯╯ ╭╯╯
+    │╭╮╮ ││　 │╭─╯╭╯╯ ╭╯╯　
+    │╰╯│ ││　 ││　│╰─╮│╰─╮
+    ╰──╯ ╰╯　 ╰╯　╰──╯╰──╯
+    ______________________________________________________________________________________
+    '''
+    print(logo)
+    filename = input("Please input the path of the file: ")
     get_content()
     bytecode()
     print('Register:')
