@@ -3,6 +3,7 @@ global pc
 filename = ''   #the file name
 pc = 0x00400000 #the address
 address = []    #store address of each instruction
+pro_content = [] #the content of the file which is not manipulated
 content = []    #store the content of each instruction
 b_c = []        #store the machine code of each instruction
 op = ''         #store the operator number
@@ -23,17 +24,24 @@ content_code = [] #store the new code if these are some instructions which shoul
 def get_content():
     global pc
     f = open(filename,'r')
-    count = 0
     for i in f.readlines():
-        if i.count(':') != 1:
-            i = i.strip()
-            content.append(i)
+        if i.count(':') == 1 and i[-2:-1] != ':':#if the label and the sentence in the same line,divide them to two lines
+            pro_content.append(i[0:i.index(':')+1])
+            pro_content.append(i[i.index(':')+1:])
+        else:
+            pro_content.append(i)
+
+    count = 0
+    for i in range(len(pro_content)):
+        if pro_content[i].count(':') != 1:
+            pro_content[i] = pro_content[i].strip()
+            content.append(pro_content[i])
             address.append(pc)
             pc = pc+4
             count += 1
         else:
-            i = i.strip()
-            labels_position[i[0:-1]] = count
+            pro_content[i] = pro_content[i].strip()
+            labels_position[pro_content[i][0:-1]] = count
     f.close()
 
 def register(rg):       #get the machine value of each register
