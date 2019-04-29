@@ -25,6 +25,8 @@ def get_content():
     global pc
     f = open(filename,'r')
     for i in f.readlines():
+        if i.isspace():
+            continue
         if i.count(':') == 1 and i[-2:-1] != ':':#if the label and the sentence in the same line,divide them to two lines
             pro_content.append(i[0:i.index(':')+1])
             pro_content.append(i[i.index(':')+1:])
@@ -134,6 +136,16 @@ def bytecode():
             op = '000000'
             b_c.append(op+rs+rt+rd+shamt+function)
 
+        elif temp[0].lower() == 'sub':
+            content_code.append((temp[0].lower())+' '+(temp[1].lower()))
+            rd = register((temp[1].lower().split(','))[0])          #get the destination register
+            rs = register((temp[1].lower().split(','))[1])          #get the operator number 1 register
+            rt = register((temp[1].lower().split(','))[2])          #get the operator number 2 register
+            function = '100010'
+            shamt = '00000'
+            op = '000000'
+            b_c.append(op+rs+rt+rd+shamt+function)
+
         elif temp[0].lower() == 'addi':
             content_code.append((temp[0].lower())+" "+(temp[1].lower()))
             op = '001000'
@@ -234,6 +246,17 @@ def bytecode():
                 rt = register((temp[1].lower().split(','))[2])
                 address_offset = decToBin(labels[temp[1].lower().split(',')[2]])
                 b_c.append(op+rt+rs+address_offset)
+
+
+        elif temp[0].lower() == 'lui':
+            content_code.append((temp[0].lower())+' '+(temp[1].lower()))
+            op = '001111'
+            rd = '00000'
+            rt = register(temp[1].lower().split(',')[0])
+            data = bin(int(temp[1].lower().split(',')[1]))[2:]
+            while len(data)!=16:
+                data = '0'+data
+            b_c.append(op+rd+rt+data)
 
         elif temp[0].lower() == 'and':
             content_code.append((temp[0].lower())+' '+(temp[1].lower()))
@@ -364,11 +387,22 @@ def bytecode():
             content_code.append((temp[0].lower())+' '+(temp[1].lower()))
             op = '000000'
             rd = '00000'
-            rs = register((temp[1].lower().split(','))[1])          #get the operator number 1 register
+            rs = register((temp[1].lower().split(','))[0])          #get the operator number 1 register
             rt = '00000'
             shamt = '00000'
             function = '001000'
             b_c.append(op+rs+rt+rd+shamt+function)
+
+        elif temp[0].lower() == 'jal':
+            content_code.append((temp[0].lower())+' '+(temp[1].lower()))
+            op = '000011'
+            if labels_position[temp[1].lower()]>=len(address):
+                address_offset = bin((address[len(address)-1]+4)>>2)[2:]
+            else:
+                address_offset = bin(address[labels_position[temp[1].lower()]]>>2)[2:]
+            while len(address_offset)!=26:
+                address_offset = '0'+address_offset
+            b_c.append(op+address_offset)
 
         elif temp[0].lower() == 'andi':
             content_code.append((temp[0].lower())+' '+(temp[1].lower()))
@@ -557,8 +591,14 @@ def bytecode():
 
         elif temp[0].lower() == 'j':
             count = labels_position[temp[1].lower()]
+
         elif temp[0].lower() == 'jr':
-            pass
+            rt = register((temp[1].lower().split(','))[0])
+            count = address.index(address[dic_register[int(rt,2)]])
+
+        elif temp[0].lower() == 'jal':
+            count = labels_position[temp[1].lower()]
+            dic_register[31] = address[count+1]
 
         elif temp[0].lower() == 'andi':
             rd = register((temp[1].lower().split(','))[1])          #get the source
@@ -580,6 +620,17 @@ def bytecode():
             const = bin(int((temp[1].lower().split(','))[2]))[2:]   #get the constant
             #calc the value of registers
             dic_register[int(rs,2)] = dic_register[int(rd,2)] ^ int(const,2)
+
+        elif temp[0].lower() == 'sub':
+            rd = register((temp[1].lower().split(','))[0])          #get the destination register
+            rs = register((temp[1].lower().split(','))[1])          #get the operator number 1 register
+            rt = register((temp[1].lower().split(','))[2])          #get the operator number 2 register
+            #calc the value of registers
+            dic_register[int(rd,2)] = dic_register[int(rs,2)] - dic_register[int(rt,2)]
+
+        elif temp[0].lower() == 'lui':
+            rt = register(temp[1].lower().split(',')[0])
+            dic_register[int(rt,2)] = int(temp[1].lower().split(',')[1])<<16
 
         else:
             pass
@@ -604,7 +655,10 @@ if __name__ == '__main__':
     ______________________________________________________________________________________
     '''
     print('\033[1;36;40m'+logo+'\033[0m')
-    filename = input("Please input the path of the file: ")
+    print("You can use these instructions in the program: ")
+    print("addi add srl bne beq lui and or xor nor slt sltu sll srl sra sllv srlv srav jr j jal andi ori xori")
+    print('--------------------------------------------------------------------------------------------------')
+    filename = input("Now please input your file path: ")
     get_content()
     bytecode()
     print('Register:')
