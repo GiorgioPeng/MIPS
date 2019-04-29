@@ -121,6 +121,7 @@ def decToBin(i):
 #translate the Mips instruction to the bytecode
 def bytecode():
     global pc
+    move = 0 #move the label if there are some sentences which should be divide in two sentences
     for i in range(len(content)):
         temp = content[i].split(' ')
         for j in range(temp.count('')):
@@ -247,6 +248,65 @@ def bytecode():
                 address_offset = decToBin(labels[temp[1].lower().split(',')[2]])
                 b_c.append(op+rt+rs+address_offset)
 
+        elif temp[0].lower() == 'bge':
+
+            if temp[1].lower().split(',')[1].isnumeric(): #whether the second operator number is a constant
+                content_code.append('slti $at,'+(temp[1].lower().split(','))[0]+','+(temp[1].lower().split(','))[1])
+                address.append(pc)
+                pc += 4
+                if labels_position[temp[1].lower().split(',')[2]] < len(content_code):
+                    labels[temp[1].lower().split(',')[2]] = labels_position[temp[1].lower().split(',')[2]] - len(b_c) - 2
+                else:
+                    labels[temp[1].lower().split(',')[2]] = labels_position[temp[1].lower().split(',')[2]] - len(b_c) - 1
+                #slti part
+                op = '001000'
+                rd = register('$zero')
+                rs = register('$at')
+                const = bin(int((temp[1].lower().split(','))[1]))[2:]
+                for i in range(16-len(const)):
+                    const = '0'+const
+                b_c.append(op+rd+rs+const)
+
+                #bne part
+                content_code.append('bge $at,$zero,'+temp[1].lower().split(',')[2])
+                op = '000100'
+                rs = '00000'
+                rt = register('$at')
+                #put in the addi part because of variable i # labels[temp[1].lower().split(',')[2]] = labels_position[temp[1].lower().split(',')[2]] - i - 2
+                address_offset = decToBin(labels[temp[1].lower().split(',')[2]])
+                b_c.append(op+rt+rs+address_offset)
+
+            else:                                                       #the second operator number is not a constant
+                address.append(pc)
+                pc += 4
+                #slt parts
+                content_code.append('slt $at,'+(temp[1].lower().split(','))[0]+','+(temp[1].lower().split(','))[1])
+                op = '000000'
+                rd = register('$at')          #get the destination register
+                rs = register((temp[1].lower().split(','))[0])          #get the operator number 1 register
+                rt = register((temp[1].lower().split(','))[1])          #get the operator number 2 register
+                shamt = '00000'
+                function = '101010'
+                b_c.append(op+rs+rt+rd+shamt+function)
+
+
+                for key in labels_position.keys():
+                    if labels_position[key] > i+move:
+                        labels_position[key] += 1
+                move += 1
+                content_code.append((temp[0].lower())+' '+(temp[1].lower()))
+                if labels_position[temp[1].lower().split(',')[2]] < len(content_code):
+                    labels[temp[1].lower().split(',')[2]] = labels_position[temp[1].lower().split(',')[2]] - len(b_c)
+                else:
+                    labels[temp[1].lower().split(',')[2]] = labels_position[temp[1].lower().split(',')[2]] - len(b_c)
+                # print(labels)
+                op = '000100'
+                rs = register('$zero')
+                rt = register('$at')
+                address_offset = decToBin(labels[temp[1].lower().split(',')[2]])
+                while len(address_offset)!=16:
+                    address_offset = '0'+address_offset
+                b_c.append(op+rt+rs+address_offset)
 
         elif temp[0].lower() == 'lui':
             content_code.append((temp[0].lower())+' '+(temp[1].lower()))
@@ -513,6 +573,16 @@ def bytecode():
                 else:
                     count = labels_position[temp[1].lower().split(',')[2]]-1
 
+        elif temp[0].lower() == 'bge':
+            rs = register('$at')
+            rt = register('$zero')
+            #calc the value of registers
+            if dic_register[int(rs,2)] >= dic_register[int(rt,2)]:  #go to the specail label
+                if labels_position[temp[1].lower().split(',')[2]]>count:
+                    count = labels_position[temp[1].lower().split(',')[2]]
+                else:
+                    count = labels_position[temp[1].lower().split(',')[2]]-1
+
         elif temp[0].lower() == 'and':
             rd = register((temp[1].lower().split(','))[0])          #get the destination register
             rs = register((temp[1].lower().split(','))[1])          #get the operator number 1 register
@@ -656,7 +726,7 @@ if __name__ == '__main__':
     '''
     print('\033[1;36;40m'+logo+'\033[0m')
     print("You can use these instructions in the program: ")
-    print("addi add srl bne beq lui and or xor nor slt sltu sll srl sra sllv srlv srav jr j jal andi ori xori")
+    print("addi add srl bne beq bge lui and or xor nor slt sltu sll srl sra sllv srlv srav jr j jal andi ori xori")
     print('--------------------------------------------------------------------------------------------------')
     filename = input("Now please input your file path: ")
     get_content()
