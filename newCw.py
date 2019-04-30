@@ -13,10 +13,9 @@ rd = ''         #store the destination operator number
 shamt =''       #store the bit of move
 function = ''   #store the function code
 const = ''      #store the constant number of the i-type instruction
-address_offset = '' #store the address_offset of the bne operator
-dic_register = dict.fromkeys(list(range(32)),0)
+address_offset = '' #store the address_offset
+dic_register = dict.fromkeys(list(range(32)),0) #record values of each registers
 labels = {}     #the labels use record the address_offset of the jump operator to run the program
-bc_labels = {}  #use this labels to make bytecode
 labels_position = {}
 content_code = [] #store the new code if these are some instructions which should be divided by 2 parts
 
@@ -25,7 +24,7 @@ def get_content():
     global pc
     f = open(filename,'r')
     for i in f.readlines():
-        if i.isspace():
+        if i.isspace(): #if there is an empty line, then skip the line
             continue
         if i.count(':') == 1 and i[-2:-1] != ':':#if the label and the sentence in the same line,divide them to two lines
             pro_content.append(i[0:i.index(':')+1])
@@ -34,7 +33,7 @@ def get_content():
             pro_content.append(i)
 
     count = 0
-    for i in range(len(pro_content)):
+    for i in range(len(pro_content)):   #store every instruction and its address
         if pro_content[i].count(':') != 1:
             pro_content[i] = pro_content[i].strip()
             content.append(pro_content[i])
@@ -46,7 +45,8 @@ def get_content():
             labels_position[pro_content[i][0:-1]] = count
     f.close()
 
-def register(rg):       #get the machine value of each register
+#get the machine value of each register
+def register(rg):
     result = ''
     if rg == '$zero':
         result = '00000'
@@ -121,7 +121,6 @@ def decToBin(i):
 #translate the Mips instruction to the bytecode
 def bytecode():
     global pc
-    move = 0 #move the label if there are some sentences which should be divide in two sentences
     for i in range(len(content)):
         temp = content[i].split(' ')
         for j in range(temp.count('')):
@@ -510,7 +509,6 @@ def bytecode():
                 tempStr2 = ''.join(tempStr2)
         print(tempStr1,tempStr2)
     print("_______________________________")
-    #print run which sentence
 
 
     #excute the bytecode
@@ -667,9 +665,13 @@ ________________________________________________________________________________
     #give value of the $gp and $sp registers
     dic_register[28] = 268468224
     dic_register[29] = 2147479548
+
+    #print values of each registers
     for i in dic_register.keys():
         print(str(i)+": "+str(int(dic_register[i])))
     tempPc = hex(pc)
+
+    #ensure the output is beatiful
     while len(tempPc)!=10:
         tempPc = list(tempPc)
         tempPc.insert(2,'0')
