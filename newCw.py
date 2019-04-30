@@ -248,65 +248,65 @@ def bytecode():
                 address_offset = decToBin(labels[temp[1].lower().split(',')[2]])
                 b_c.append(op+rt+rs+address_offset)
 
-        elif temp[0].lower() == 'bge':
-
-            if temp[1].lower().split(',')[1].isnumeric(): #whether the second operator number is a constant
-                content_code.append('slti $at,'+(temp[1].lower().split(','))[0]+','+(temp[1].lower().split(','))[1])
-                address.append(pc)
-                pc += 4
-                if labels_position[temp[1].lower().split(',')[2]] < len(content_code):
-                    labels[temp[1].lower().split(',')[2]] = labels_position[temp[1].lower().split(',')[2]] - len(b_c) - 2
-                else:
-                    labels[temp[1].lower().split(',')[2]] = labels_position[temp[1].lower().split(',')[2]] - len(b_c) - 1
-                #slti part
-                op = '001000'
-                rd = register('$zero')
-                rs = register('$at')
-                const = bin(int((temp[1].lower().split(','))[1]))[2:]
-                for i in range(16-len(const)):
-                    const = '0'+const
-                b_c.append(op+rd+rs+const)
-
-                #bne part
-                content_code.append('bge $at,$zero,'+temp[1].lower().split(',')[2])
-                op = '000100'
-                rs = '00000'
-                rt = register('$at')
-                #put in the addi part because of variable i # labels[temp[1].lower().split(',')[2]] = labels_position[temp[1].lower().split(',')[2]] - i - 2
-                address_offset = decToBin(labels[temp[1].lower().split(',')[2]])
-                b_c.append(op+rt+rs+address_offset)
-
-            else:                                                       #the second operator number is not a constant
-                address.append(pc)
-                pc += 4
-                #slt parts
-                content_code.append('slt $at,'+(temp[1].lower().split(','))[0]+','+(temp[1].lower().split(','))[1])
-                op = '000000'
-                rd = register('$at')          #get the destination register
-                rs = register((temp[1].lower().split(','))[0])          #get the operator number 1 register
-                rt = register((temp[1].lower().split(','))[1])          #get the operator number 2 register
-                shamt = '00000'
-                function = '101010'
-                b_c.append(op+rs+rt+rd+shamt+function)
-
-
-                for key in labels_position.keys():
-                    if labels_position[key] > i+move:
-                        labels_position[key] += 1
-                move += 1
-                content_code.append((temp[0].lower())+' '+(temp[1].lower()))
-                if labels_position[temp[1].lower().split(',')[2]] < len(content_code):
-                    labels[temp[1].lower().split(',')[2]] = labels_position[temp[1].lower().split(',')[2]] - len(b_c)
-                else:
-                    labels[temp[1].lower().split(',')[2]] = labels_position[temp[1].lower().split(',')[2]] - len(b_c)
-                # print(labels)
-                op = '000100'
-                rs = register('$zero')
-                rt = register('$at')
-                address_offset = decToBin(labels[temp[1].lower().split(',')[2]])
-                while len(address_offset)!=16:
-                    address_offset = '0'+address_offset
-                b_c.append(op+rt+rs+address_offset)
+        # elif temp[0].lower() == 'bge':
+        #
+        #     if temp[1].lower().split(',')[1].isnumeric(): #whether the second operator number is a constant
+        #         content_code.append('slti $at,'+(temp[1].lower().split(','))[0]+','+(temp[1].lower().split(','))[1])
+        #         address.append(pc)
+        #         pc += 4
+        #         if labels_position[temp[1].lower().split(',')[2]] < len(content_code):
+        #             labels[temp[1].lower().split(',')[2]] = labels_position[temp[1].lower().split(',')[2]] - len(b_c) - 2
+        #         else:
+        #             labels[temp[1].lower().split(',')[2]] = labels_position[temp[1].lower().split(',')[2]] - len(b_c) - 1
+        #         #slti part
+        #         op = '001000'
+        #         rd = register('$zero')
+        #         rs = register('$at')
+        #         const = bin(int((temp[1].lower().split(','))[1]))[2:]
+        #         for i in range(16-len(const)):
+        #             const = '0'+const
+        #         b_c.append(op+rd+rs+const)
+        #
+        #         #bne part
+        #         content_code.append('bge $at,$zero,'+temp[1].lower().split(',')[2])
+        #         op = '000100'
+        #         rs = '00000'
+        #         rt = register('$at')
+        #         #put in the addi part because of variable i # labels[temp[1].lower().split(',')[2]] = labels_position[temp[1].lower().split(',')[2]] - i - 2
+        #         address_offset = decToBin(labels[temp[1].lower().split(',')[2]])
+        #         b_c.append(op+rt+rs+address_offset)
+        #
+        #     else:                                                       #the second operator number is not a constant
+        #         address.append(pc)
+        #         pc += 4
+        #         #slt parts
+        #         content_code.append('slt $at,'+(temp[1].lower().split(','))[0]+','+(temp[1].lower().split(','))[1])
+        #         op = '000000'
+        #         rd = register('$at')          #get the destination register
+        #         rs = register((temp[1].lower().split(','))[0])          #get the operator number 1 register
+        #         rt = register((temp[1].lower().split(','))[1])          #get the operator number 2 register
+        #         shamt = '00000'
+        #         function = '101010'
+        #         b_c.append(op+rs+rt+rd+shamt+function)
+        #
+        #
+        #         for key in labels_position.keys():
+        #             if labels_position[key] > i+move:
+        #                 labels_position[key] += 1
+        #         move += 1
+        #         content_code.append((temp[0].lower())+' '+(temp[1].lower()))
+        #         if labels_position[temp[1].lower().split(',')[2]] < len(content_code):
+        #             labels[temp[1].lower().split(',')[2]] = labels_position[temp[1].lower().split(',')[2]] - len(b_c)
+        #         else:
+        #             labels[temp[1].lower().split(',')[2]] = labels_position[temp[1].lower().split(',')[2]] - len(b_c)
+        #         # print(labels)
+        #         op = '000100'
+        #         rs = register('$zero')
+        #         rt = register('$at')
+        #         address_offset = decToBin(labels[temp[1].lower().split(',')[2]])
+        #         while len(address_offset)!=16:
+        #             address_offset = '0'+address_offset
+        #         b_c.append(op+rt+rs+address_offset)
 
         elif temp[0].lower() == 'lui':
             content_code.append((temp[0].lower())+' '+(temp[1].lower()))
@@ -511,9 +511,14 @@ def bytecode():
         print(tempStr1,tempStr2)
     print("_______________________________")
     #print run which sentence
-    for i in range(len(b_c)):
-        tempStr1 = hex(int(address[i]))
-        tempStr2 = hex(int(b_c[i],2))
+
+
+    #excute the bytecode
+    count = 0
+    while count<len(b_c):
+        #output run which sentence
+        tempStr1 = hex(int(address[count]))
+        tempStr2 = hex(int(b_c[count],2))
         while len(tempStr1)!=10 or len(tempStr2)!=10:
             if len(tempStr1)!=10:
                 tempStr1 = list(tempStr1)
@@ -525,182 +530,108 @@ def bytecode():
                 tempStr2 = ''.join(tempStr2)
         print('Executing: '+tempStr1+"  "+tempStr2)
 
-    #excute the bytecode
-    count = 0
-    while count<len(b_c):
+        # print(b_c[count][0:6],b_c[count][6:11],b_c[count][11:16],b_c[count][16:21],b_c[count][21:26],b_c[count][26:32])
         temp = content_code[count].split(' ')
         for j in range(temp.count('')):
             temp.remove('')
-        if temp[0].lower() == 'add':
-            rd = register((temp[1].lower().split(','))[0])          #get the destination register
-            rs = register((temp[1].lower().split(','))[1])          #get the operator number 1 register
-            rt = register((temp[1].lower().split(','))[2])          #get the operator number 2 register
-            #calc the value of registers
-            dic_register[int(rd,2)] = dic_register[int(rs,2)] + dic_register[int(rt,2)]
 
-        elif temp[0].lower() == 'addi':
-            rd = register((temp[1].lower().split(','))[1])          #get the source
-            rs = register((temp[1].lower().split(','))[0])          #get the destination
-            const = bin(int((temp[1].lower().split(','))[2]))[2:]   #get the constant
-            #calc the value of registers
-            dic_register[int(rs,2)] = dic_register[int(rd,2)] + int(const,2)
-            # print(dic_register[int(rs,2)])
+        if b_c[count][0:6] == '000000' and b_c[count][26:32] == '100000':#add
+            dic_register[int(b_c[count][16:21],2)] = dic_register[int(b_c[count][6:11],2)] + dic_register[int(b_c[count][11:16],2)]
 
-        elif temp[0].lower() == 'srl':
-            rt = register((temp[1].lower().split(','))[1])
-            rd = register((temp[1].lower().split(','))[0])
-            shamt = bin(int((temp[1].lower().split(','))[2]))[2:]
-            #calc the value of registers
-            dic_register[int(rd,2)] = dic_register[int(rt,2)] >> int(shamt,2)
+        elif b_c[count][0:6] == '001000':#addi
+            dic_register[int(b_c[count][11:16],2)] = dic_register[int(b_c[count][6:11],2)] + int(b_c[count][16:32],2)
 
-        elif temp[0].lower() == 'bne':
-            rs = register((temp[1].lower().split(','))[0])
-            rt = register((temp[1].lower().split(','))[1])
-            #calc the value of registers
-            if dic_register[int(rs,2)] != dic_register[int(rt,2)]:  #go to the specail label
+        elif b_c[count][0:6] == '000000' and b_c[count][26:32] == '000010':#srl
+            dic_register[int(b_c[count][16:21],2)] = dic_register[int(b_c[count][11:16],2)] >> int(b_c[count][21:26],2)
+
+        elif b_c[count][0:6] == '000101': #bne
+            if dic_register[int(b_c[count][11:16],2)] != dic_register[int(b_c[count][6:11],2)]:  #go to the specail label
                 if labels_position[temp[1].lower().split(',')[2]]>count:
                     count = labels_position[temp[1].lower().split(',')[2]]
                 else:
                     count = labels_position[temp[1].lower().split(',')[2]]-1
 
-        elif temp[0].lower() == 'beq':
-            rs = register((temp[1].lower().split(','))[0])
-            rt = register((temp[1].lower().split(','))[1])
-            #calc the value of registers
-            if dic_register[int(rs,2)] == dic_register[int(rt,2)]:  #go to the specail label
+        elif b_c[count][0:6] == '000100': #beq
+            if dic_register[int(b_c[count][11:16],2)] == dic_register[int(b_c[count][6:11],2)]:  #go to the specail label
                 if labels_position[temp[1].lower().split(',')[2]]>count:
                     count = labels_position[temp[1].lower().split(',')[2]]
                 else:
                     count = labels_position[temp[1].lower().split(',')[2]]-1
+        #
+        # elif temp[0].lower() == 'bge':
+        #     rs = register('$at')
+        #     rt = register('$zero')
+        #     #calc the value of registers
+        #     if dic_register[int(rs,2)] >= dic_register[int(rt,2)]:  #go to the specail label
+        #         if labels_position[temp[1].lower().split(',')[2]]>count:
+        #             count = labels_position[temp[1].lower().split(',')[2]]
+        #         else:
+        #             count = labels_position[temp[1].lower().split(',')[2]]-1
+        #
+        elif b_c[count][0:6] == '000000' and b_c[count][26:32] == '100100': #and
+            dic_register[int(b_c[count][16:21],2)] = dic_register[int(b_c[count][6:11],2)] & dic_register[int(b_c[count][11:16],2)]
 
-        elif temp[0].lower() == 'bge':
-            rs = register('$at')
-            rt = register('$zero')
-            #calc the value of registers
-            if dic_register[int(rs,2)] >= dic_register[int(rt,2)]:  #go to the specail label
-                if labels_position[temp[1].lower().split(',')[2]]>count:
-                    count = labels_position[temp[1].lower().split(',')[2]]
-                else:
-                    count = labels_position[temp[1].lower().split(',')[2]]-1
+        elif b_c[count][0:6] == '000000' and b_c[count][26:32] == '100101': #or
+            dic_register[int(b_c[count][16:21],2)] = dic_register[int(b_c[count][6:11],2)] | dic_register[int(b_c[count][11:16],2)]
 
-        elif temp[0].lower() == 'and':
-            rd = register((temp[1].lower().split(','))[0])          #get the destination register
-            rs = register((temp[1].lower().split(','))[1])          #get the operator number 1 register
-            rt = register((temp[1].lower().split(','))[2])          #get the operator number 2 register
-            #calc the value of registers
-            dic_register[int(rd,2)] = dic_register[int(rs,2)] & dic_register[int(rt,2)]
+        elif b_c[count][0:6] == '000000' and b_c[count][26:32] == '100110': #xor
+            dic_register[int(b_c[count][16:21],2)] = dic_register[int(b_c[count][6:11],2)] ^ dic_register[int(b_c[count][11:16],2)]
 
-        elif temp[0].lower() == 'xor':
-            rd = register((temp[1].lower().split(','))[0])          #get the destination register
-            rs = register((temp[1].lower().split(','))[1])          #get the operator number 1 register
-            rt = register((temp[1].lower().split(','))[2])          #get the operator number 2 register
-            #calc the value of registers
-            dic_register[int(rd,2)] = dic_register[int(rs,2)] ^ dic_register[int(rt,2)]
+        elif b_c[count][0:6] == '000000' and b_c[count][26:32] == '100111': #nor
+            dic_register[int(b_c[count][16:21],2)] = ~(dic_register[int(b_c[count][6:11],2)] | dic_register[int(b_c[count][11:16],2)])
 
-        elif temp[0].lower() == 'nor':
-            rd = register((temp[1].lower().split(','))[0])          #get the destination register
-            rs = register((temp[1].lower().split(','))[1])          #get the operator number 1 register
-            rt = register((temp[1].lower().split(','))[2])          #get the operator number 2 register
-            #calc the value of registers
-            dic_register[int(rd,2)] = ~(dic_register[int(rs,2)] | dic_register[int(rt,2)])
-
-        elif temp[0].lower() == 'slt':
-            rd = register((temp[1].lower().split(','))[0])          #get the destination register
-            rs = register((temp[1].lower().split(','))[1])          #get the operator number 1 register
-            rt = register((temp[1].lower().split(','))[2])          #get the operator number 2 register
-            #calc the value of registers
-            if dic_register[int(rs,2)] < dic_register[int(rt,2)]:
-                dic_register[int(rd,2)] = 1
+        elif b_c[count][0:6] == '000000' and b_c[count][26:32] == '101010': #slt
+            if dic_register[int(b_c[count][6:11],2)] < dic_register[int(b_c[count][11:16],2)]:
+                dic_register[int(b_c[count][16:21],2)] = 1
             else:
-                dic_register[int(rd,2)] = 0
+                dic_register[int(b_c[count][16:21],2)] = 0
 
-        elif temp[0].lower() == 'sltu':
-            rd = register((temp[1].lower().split(','))[0])          #get the destination register
-            rs = register((temp[1].lower().split(','))[1])          #get the operator number 1 register
-            rt = register((temp[1].lower().split(','))[2])          #get the operator number 2 register
-            #calc the value of registers
-            if dic_register[int(rs,2)] < dic_register[int(rt,2)]:
-                dic_register[int(rd,2)] = 1
+        elif b_c[count][0:6] == '000000' and b_c[count][26:32] == '101011': #sltu
+            if dic_register[int(b_c[count][6:11],2)] < dic_register[int(b_c[count][11:16],2)]:
+                dic_register[int(b_c[count][16:21],2)] = 1
             else:
-                dic_register[int(rd,2)] = 0
+                dic_register[int(b_c[count][16:21],2)] = 0
 
-        elif temp[0].lower() == 'sll':
-            rt = register((temp[1].lower().split(','))[1])
-            rd = register((temp[1].lower().split(','))[0])
-            shamt = bin(int((temp[1].lower().split(','))[2]))[2:]
-            #calc the value of registers
-            dic_register[int(rd,2)] = dic_register[int(rt,2)] << int(shamt,2)
 
-        elif temp[0].lower() == 'sra':
-            rt = register((temp[1].lower().split(','))[1])
-            rd = register((temp[1].lower().split(','))[0])
-            shamt = bin(int((temp[1].lower().split(','))[2]))[2:]
-            #calc the value of registers
-            dic_register[int(rd,2)] = dic_register[int(rt,2)] >> int(shamt,2)
+        elif b_c[count][0:6] == '000000' and b_c[count][26:32] == '000000': #sll
+            dic_register[int(b_c[count][16:21],2)] = dic_register[int(b_c[count][11:16],2)] << int(b_c[count][21:26],2)
 
-        elif temp[0].lower() == 'sllv':
-            rd = register((temp[1].lower().split(','))[0])          #get the destination register
-            rs = register((temp[1].lower().split(','))[1])          #get the operator number 1 register
-            rt = register((temp[1].lower().split(','))[2])          #get the operator number 2 register
-            #calc the value of registers
-            dic_register[int(rd,2)] = dic_register[int(rs,2)] << dic_register[int(rt,2)]
+        elif b_c[count][0:6] == '000000' and b_c[count][26:32] == '000011': #sra
+            dic_register[int(b_c[count][16:21],2)] = dic_register[int(b_c[count][11:16],2)] >> int(b_c[count][21:26],2)
 
-        elif temp[0].lower() == 'srlv':
-            rd = register((temp[1].lower().split(','))[0])          #get the destination register
-            rs = register((temp[1].lower().split(','))[1])          #get the operator number 1 register
-            rt = register((temp[1].lower().split(','))[2])          #get the operator number 2 register
-            #calc the value of registers
-            dic_register[int(rd,2)] = dic_register[int(rs,2)] >> dic_register[int(rt,2)]
+        elif b_c[count][0:6] == '000000' and b_c[count][26:32] == '000100': #sllv
+            dic_register[int(b_c[count][16:21],2)] = dic_register[int(b_c[count][6:11],2)] << dic_register[int(b_c[count][11:16],2)]
 
-        elif temp[0].lower() == 'srav':
-            rd = register((temp[1].lower().split(','))[0])          #get the destination register
-            rs = register((temp[1].lower().split(','))[1])          #get the operator number 1 register
-            rt = register((temp[1].lower().split(','))[2])          #get the operator number 2 register
-            #calc the value of registers
-            dic_register[int(rd,2)] = dic_register[int(rs,2)] >> dic_register[int(rt,2)]
+        elif b_c[count][0:6] == '000000' and b_c[count][26:32] == '000110': #srlv
+            dic_register[int(b_c[count][16:21],2)] = dic_register[int(b_c[count][6:11],2)] >> dic_register[int(b_c[count][11:16],2)]
 
-        elif temp[0].lower() == 'j':
+        elif b_c[count][0:6] == '000000' and b_c[count][26:32] == '000111': #srav
+            dic_register[int(b_c[count][16:21],2)] = dic_register[int(b_c[count][6:11],2)] >> dic_register[int(b_c[count][11:16],2)]
+
+        elif b_c[count][0:6] == '000010': #j
             count = labels_position[temp[1].lower()]
 
-        elif temp[0].lower() == 'jr':
-            rt = register((temp[1].lower().split(','))[0])
-            count = address.index(address[dic_register[int(rt,2)]])
+        elif b_c[count][0:6] == '000000' and b_c[count][26:32] == '001000': #jr
+            count = address.index(address[dic_register[int(b_c[count][11:16],2)]])
 
-        elif temp[0].lower() == 'jal':
+        elif b_c[count][0:6] == '000011': #jal
             count = labels_position[temp[1].lower()]
             dic_register[31] = address[count+1]
 
-        elif temp[0].lower() == 'andi':
-            rd = register((temp[1].lower().split(','))[1])          #get the source
-            rs = register((temp[1].lower().split(','))[0])          #get the destination
-            const = bin(int((temp[1].lower().split(','))[2]))[2:]   #get the constant
-            #calc the value of registers
-            dic_register[int(rs,2)] = dic_register[int(rd,2)] & int(const,2)
+        elif b_c[count][0:6] == '001100': #andi
+            dic_register[int(b_c[count][11:16],2)] = dic_register[int(b_c[count][6:11],2)] & int(b_c[count][16:32],2)
 
-        elif temp[0].lower() == 'ori':
-            rd = register((temp[1].lower().split(','))[1])          #get the source
-            rs = register((temp[1].lower().split(','))[0])          #get the destination
-            const = bin(int((temp[1].lower().split(','))[2]))[2:]   #get the constant
-            #calc the value of registers
-            dic_register[int(rs,2)] = dic_register[int(rd,2)] | int(const,2)
+        elif b_c[count][0:6] == '001101': #ori
+            dic_register[int(b_c[count][11:16],2)] = dic_register[int(b_c[count][6:11],2)] | int(b_c[count][16:32],2)
 
-        elif temp[0].lower() == 'xori':
-            rd = register((temp[1].lower().split(','))[1])          #get the source
-            rs = register((temp[1].lower().split(','))[0])          #get the destination
-            const = bin(int((temp[1].lower().split(','))[2]))[2:]   #get the constant
-            #calc the value of registers
-            dic_register[int(rs,2)] = dic_register[int(rd,2)] ^ int(const,2)
+        elif b_c[count][0:6] == '001110': #xori
+            dic_register[int(b_c[count][11:16],2)] = dic_register[int(b_c[count][6:11],2)] ^ int(b_c[count][16:32],2)
 
-        elif temp[0].lower() == 'sub':
-            rd = register((temp[1].lower().split(','))[0])          #get the destination register
-            rs = register((temp[1].lower().split(','))[1])          #get the operator number 1 register
-            rt = register((temp[1].lower().split(','))[2])          #get the operator number 2 register
-            #calc the value of registers
-            dic_register[int(rd,2)] = dic_register[int(rs,2)] - dic_register[int(rt,2)]
+        elif b_c[count][0:6] == '000000' and b_c[count][26:32] == '100010': #sub
+            dic_register[int(b_c[count][16:21],2)] = dic_register[int(b_c[count][6:11],2)] - dic_register[int(b_c[count][11:16],2)]
 
-        elif temp[0].lower() == 'lui':
-            rt = register(temp[1].lower().split(',')[0])
-            dic_register[int(rt,2)] = int(temp[1].lower().split(',')[1])<<16
+        elif b_c[count][0:6] == '001111': #lui
+            dic_register[int(b_c[count][11:16],2)] = int(b_c[count][16:32],2)<<16
 
         else:
             pass
@@ -708,7 +639,7 @@ def bytecode():
 
 if __name__ == '__main__':
     logo = '''
-    ______________________________________________________________________________________
+______________________________________________________________________________________
     ╭╭╮╮╭──╮╭──╮╭──╮    ╭──╮╭╮╭╮╭──╮╭╮╭╮╭──╮╭╮╭╮
     │　│╰╮╭╯│╭╮││╭─╯　  │╭╮││╰╯│╰╮╭╯│││││╭╮││╰╮│
     ││││ ││ │╰╯││╰─╮　  │╰╯│╰╮╭╯ ││ │╰╯││││││　│
@@ -722,11 +653,12 @@ if __name__ == '__main__':
     │╭╮╮ ││　 │╭─╯╭╯╯ ╭╯╯　
     │╰╯│ ││　 ││　│╰─╮│╰─╮
     ╰──╯ ╰╯　 ╰╯　╰──╯╰──╯
-    ______________________________________________________________________________________
+______________________________________________________________________________________
     '''
-    print('\033[1;36;40m'+logo+'\033[0m')
+    print(logo)
+    print('Pay attention to: this script can not support for using multiple labels to jump\n')
     print("You can use these instructions in the program: ")
-    print("addi add srl bne beq bge lui and or xor nor slt sltu sll srl sra sllv srlv srav jr j jal andi ori xori")
+    print("addi add srl bne beq lui and or xor nor slt sltu sll srl sra sllv srlv srav jr j jal andi ori xori\n")
     print('--------------------------------------------------------------------------------------------------')
     filename = input("Now please input your file path: ")
     get_content()
