@@ -37,6 +37,6 @@ this script can not support for using nested jumps
 3. input the path of the txt format file
 4. get the result of the assembles script
 
-> the result of the python script is as same as the assemble script running in the MARS  
+> the result of the python script is as same as the assemble script running in the MIPS  
 
 > In addtion, welcome to add more instruction supporting to this python script!!!
